@@ -35,6 +35,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import config
 from modules import pdf_parser, skill_extractor, scorer, ranker, exporter
+from modules.session_manager import get_session_manager
 
 
 # Configure logging
@@ -55,10 +56,8 @@ app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
 os.makedirs(config.UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(config.RESULTS_FOLDER, exist_ok=True)
 
-# Simple in-memory storage for results (keyed by session_id)
-# In production, use a database or cache service (Redis, etc.)
-results_store = {}
-progress_store = {}
+# File-based session storage (persists across restarts)
+session_manager = get_session_manager()
 
 # Rate limiting: track analyses per IP (max 5 per minute)
 # Format: {ip_address: [timestamp1, timestamp2, ...]}
@@ -120,10 +119,9 @@ def cleanup_uploaded_files(session_id: str):
     Args:
         session_id: Session ID to cleanup
     """
-    if session_id not in results_store:
+    session_data = session_manager.get_results(session_id)
+    if not session_data:
         return
-    
-    session_data = results_store.get(session_id, {})
     files = session_data.get('files', [])
     
     for filepath in files:
@@ -140,29 +138,15 @@ def cleanup_old_sessions(hours: int = 1):
     Remove old session data to save memory and disk space.
     
     Deletes:
-      - Session data from results_store
-      - Progress data from progress_store
+      - Session data from session files
       - Uploaded PDF files
     
     Args:
         hours: Remove sessions older than this many hours (default: 1)
     """
-    cutoff = datetime.now() - timedelta(hours=hours)
-    old_sessions = [
-        sid for sid, data in results_store.items()
-        if data.get('created_at', datetime.now()) < cutoff
-    ]
-    
-    for sid in old_sessions:
-        # Delete uploaded files
-        cleanup_uploaded_files(sid)
-
-        # Remove from stores
-        results_store.pop(sid, None)
-        progress_store.pop(sid, None)
-    
-    if old_sessions:
-        logger.info(f"Cleaned up {len(old_sessions)} old sessions")
+    deleted_count = session_manager.cleanup_old_sessions(hours)
+    if deleted_count > 0:
+        logger.info(f"Cleaned up {deleted_count} old sessions")
 
 
 def generate_csv_filename() -> str:
@@ -297,16 +281,16 @@ def upload():
             logger.info(f"Saved file: {unique_filename}")
         
         # Store session data
-        results_store[session_id] = {
+        session_manager.set_results(session_id, {
             'job_description': job_description,
             'files': saved_files,
             'status': 'uploaded',
             'created_at': datetime.now()
-        }
+        })
 
         logger.info(f"Session {session_id}: {len(saved_files)} files uploaded")
         
-        progress_store[session_id] = {'step': 'Files uploaded', 'percent': 0}
+        session_manager.set_progress(session_id, 'Files uploaded', 0)
         
         return jsonify({
             'session_id': session_id,
@@ -344,10 +328,9 @@ def analyze():
         data = request.get_json()
         session_id = data.get('session_id')
         
-        if not session_id or session_id not in results_store:
+        session_data = session_manager.get_results(session_id)
+        if not session_id or not session_data:
             return jsonify({'error': 'Invalid session ID'}), 400
-        
-        session_data = results_store[session_id]
         job_description = session_data.get('job_description', '')
         file_paths = session_data.get('files', [])
         
@@ -356,18 +339,17 @@ def analyze():
         
         # Run pipeline
         logger.info(f"Starting analysis for session {session_id} (IP: {client_ip})")
-        progress_store[session_id] = {'step': 'Starting analysis', 'percent': 5}
+        session_manager.set_progress(session_id, 'Starting analysis', 5)
         
         pipeline_result = run_full_pipeline(file_paths, job_description, session_id)
         
         # Store results
-        results_store[session_id].update({
-            'results': pipeline_result,
-            'status': 'completed',
-            'completed_at': datetime.now()
-        })
+        session_data['results'] = pipeline_result
+        session_data['status'] = 'completed'
+        session_data['completed_at'] = datetime.now()
+        session_manager.set_results(session_id, session_data)
         
-        progress_store[session_id] = {'step': 'Analysis complete', 'percent': 100}
+        session_manager.set_progress(session_id, 'Analysis complete', 100)
 
 
         
@@ -388,11 +370,7 @@ def analyze():
         
         # Update progress to show error
         if 'session_id' in locals() and session_id:
-            progress_store[session_id] = {
-                'step': 'Error occurred',
-                'percent': 0,
-                'error': str(e)
-            }
+            session_manager.set_progress(session_id, 'Error occurred', 0, error=str(e))
         
         return jsonify({
             'error': 'Analysis failed. Please try again or contact support.',
@@ -412,13 +390,12 @@ def results(session_id):
       HTML page with results table or error page
     """
     try:
-        if session_id not in results_store:
+        session_data = session_manager.get_results(session_id)
+        if not session_data:
             return render_template(
                 'error.html',
                 error='Session not found. The session may have expired or the ID is invalid.'
             ), 404
-        
-        session_data = results_store[session_id]
         
         if 'results' not in session_data:
             return render_template(
@@ -455,10 +432,9 @@ def export(session_id):
       CSV file download or error JSON
     """
     try:
-        if session_id not in results_store:
+        session_data = session_manager.get_results(session_id)
+        if not session_data:
             return jsonify({'error': 'Session not found'}), 404
-        
-        session_data = results_store[session_id]
         
         if 'results' not in session_data:
             return jsonify({'error': 'Results not ready'}), 400
@@ -492,10 +468,8 @@ def export(session_id):
 @app.route('/progress/<session_id>')
 def progress(session_id):
     """Get analysis progress."""
-    if session_id not in progress_store:
-        return jsonify({'step': 'Initializing', 'percent': 0}), 200
-    
-    return jsonify(progress_store[session_id]), 200
+    progress_data = session_manager.get_progress(session_id)
+    return jsonify(progress_data), 200
 
 
 @app.route('/quick-feedback', methods=['POST'])
@@ -712,7 +686,7 @@ def run_full_pipeline(file_paths, job_description, session_id):
     try:
         # Step 1: Parse PDFs in parallel (PDF parsing doesn't hit API, safe to parallelize)
         logger.info(f"[Pipeline] Step 1: Parsing {len(file_paths)} PDFs")
-        progress_store[session_id] = {'step': 'Parsing PDFs', 'percent': 10}
+        session_manager.set_progress(session_id, 'Parsing PDFs', 10)
         
         with ThreadPoolExecutor(max_workers=4) as executor:
             parse_tasks = {executor.submit(pdf_parser.extract_text, fp): fp for fp in file_paths}
@@ -748,10 +722,11 @@ def run_full_pipeline(file_paths, job_description, session_id):
         
         # Step 2: Extract skills using local spaCy NLP (no API calls, instant processing)
         logger.info(f"[Pipeline] Step 2: Extracting skills with local NLP")
-        progress_store[session_id] = {
-            'step': f'Extracting skills (0/{len(candidates)})',
-            'percent': 30
-        }
+        session_manager.set_progress(
+            session_id,
+            f'Extracting skills (0/{len(candidates)})',
+            30
+        )
         
         # Parse job skills once using spaCy keyword matching
         job_skills = skill_extractor.parse_job_skills(job_description)
@@ -778,10 +753,11 @@ def run_full_pipeline(file_paths, job_description, session_id):
                 
                 # Update progress
                 progress_percent = 30 + int((i + 1) / len(candidates) * 25)
-                progress_store[session_id] = {
-                    'step': f'Extracting skills ({i+1}/{len(candidates)})',
-                    'percent': progress_percent
-                }
+                session_manager.set_progress(
+                    session_id,
+                    f'Extracting skills ({i+1}/{len(candidates)})',
+                    progress_percent
+                )
                     
             except Exception as e:
                 logger.error(f"Skill extraction failed for candidate {i+1}: {str(e)}")
@@ -798,7 +774,7 @@ def run_full_pipeline(file_paths, job_description, session_id):
         
         # Step 3: Score candidates
         logger.info(f"[Pipeline] Step 3: Scoring {len(candidates)} candidates")
-        progress_store[session_id] = {'step': 'Scoring candidates', 'percent': 60}
+        session_manager.set_progress(session_id, 'Scoring candidates', 60)
         
         for candidate in candidates:
             try:
@@ -817,7 +793,7 @@ def run_full_pipeline(file_paths, job_description, session_id):
         
         # Step 4: Generate gap analyses using rule-based templates (instant, no API calls)
         logger.info(f"[Pipeline] Step 4: Generating gap analyses")
-        progress_store[session_id] = {'step': 'Generating gap analyses', 'percent': 75}
+        session_manager.set_progress(session_id, 'Generating gap analyses', 75)
         
         try:
             # Template-based gap analysis — no API calls, instant processing
@@ -835,7 +811,7 @@ def run_full_pipeline(file_paths, job_description, session_id):
         
         # Step 5: Rank candidates deterministically
         logger.info(f"[Pipeline] Step 5: Ranking candidates")
-        progress_store[session_id] = {'step': 'Ranking candidates', 'percent': 90}
+        session_manager.set_progress(session_id, 'Ranking candidates', 90)
         
         ranked = ranker.rank_candidates(candidates)
         ranked = ranker.assign_ranks(ranked)
@@ -862,11 +838,7 @@ def run_full_pipeline(file_paths, job_description, session_id):
         
     except Exception as e:
         logger.error(f"[Pipeline] Critical error: {str(e)}", exc_info=True)
-        progress_store[session_id] = {
-            'step': 'Error',
-            'percent': 0,
-            'error': str(e)
-        }
+        session_manager.set_progress(session_id, 'Error', 0, error=str(e))
         raise
 
 

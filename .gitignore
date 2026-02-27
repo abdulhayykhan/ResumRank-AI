@@ -41,6 +41,7 @@ uploads/
 uploads/*.pdf
 uploads/*.PDF
 results/
+sessions/
 test_data/
 test_data/*.pdf
 testing/
