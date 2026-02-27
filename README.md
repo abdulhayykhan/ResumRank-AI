@@ -62,6 +62,7 @@ ResumRank/
 │   ├── scorer.py            # Weighted scoring engine + gap analysis templates
 │   ├── ranker.py            # Deterministic ranking and tie-breaking logic
 │   ├── pdf_parser.py        # PDF text extraction with edge case handling
+│   ├── session_manager.py   # File-based session persistence for Railway deployments
 │   └── exporter.py          # CSV generation and formatting
 │
 ├── templates/
