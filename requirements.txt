@@ -1,0 +1,25 @@
+# ResumRank AI — No API Key Edition
+# ======================================
+
+# Core Framework
+flask==2.3.3
+
+# Production WSGI Server  
+gunicorn==21.2.0
+
+# NLP — Local skill extraction (no API key needed)
+spacy>=3.7.0
+
+# PDF Processing
+pdfplumber==0.10.2
+
+# Environment Management
+python-dotenv==1.0.0
+
+# Data Processing & Export
+pandas>=2.1.0
+numpy>=1.26.0
+
+# Utilities
+werkzeug==2.3.7
+requests>=2.31.0

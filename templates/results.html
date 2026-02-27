@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking Results - ResumRank AI</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 16V10" stroke-linecap="round"/>
+                        <path d="M11 16V6" stroke-linecap="round"/>
+                        <path d="M15 16V12" stroke-linecap="round"/>
+                        <path d="M19 16V8" stroke-linecap="round"/>
+                    </svg>
+                    ResumRank AI
+                </h1>
+                <p class="tagline">Analysis Results • Transparent Rankings</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Summary Bar -->
+            <div class="summary-bar-grid">
+                <div class="summary-card">  
+                    <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <div class="summary-content">
+                        <span class="summary-label">Total Candidates</span>
+                        <span class="summary-value">{{ summary.total_candidates }}</span>
+                    </div>
+                </div>
+
+                <div class="summary-card highlight">
+                    <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                    <div class="summary-content">
+                        <span class="summary-label">Top Scorer</span>
+                        <span class="summary-value top-scorer">{{ summary.top_scorer }}</span>
+                        <span class="summary-detail">{{ "%.1f"|format(ranked_candidates[0].final_score) }} points</span>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <div class="summary-content">
+                        <span class="summary-label">Average Score</span>
+                        <span class="summary-value">{{ "%.1f"|format(summary.average_score) }}</span>
+                    </div>
+                </div>
+
+                <div class="summary-card distribution">
+                    <svg class="summary-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                    </svg>
+                    <div class="summary-content">
+                        <span class="summary-label">Score Distribution</span>
+                        <div class="distribution-mini">
+                            <span class="badge-mini badge-excellent" title="Excellent (80+)">{{ summary.score_distribution['excellent(80+)'] }}</span>
+                            <span class="badge-mini badge-good" title="Good (60-79)">{{ summary.score_distribution['good(60-79)'] }}</span>
+                            <span class="badge-mini badge-average" title="Average (40-59)">{{ summary.score_distribution['average(40-59)'] }}</span>
+                            <span class="badge-mini badge-weak" title="Weak (<40)">{{ summary.score_distribution['weak(<40)'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rankings Table -->
+            <div class="card ranking-card">
+                <div class="card-header">
+                    <h2>
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        Candidate Rankings
+                    </h2>
+                    <p class="card-hint">Click any row to view detailed gap analysis</p>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="ranking-table" id="ranking_table" data-sort-column="" data-sort-ascending="false">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-column="rank">
+                                    Rank <span class="sort-arrow">↕</span>
+                                </th>
+                                <th class="sortable" data-column="candidate_name">
+                                    Candidate Name <span class="sort-arrow">↕</span>
+                                </th>
+                                <th class="sortable" data-column="final_score">
+                                    Final Score <span class="sort-arrow">↕</span>
+                                </th>
+                                <th class="sortable" data-column="skill_score">
+                                    Skill Match <span class="sort-arrow">↕</span>
+                                </th>
+                                <th class="sortable" data-column="experience_score">
+                                    Experience <span class="sort-arrow">↕</span>
+                                </th>
+                                <th>Years</th>
+                                <th>Matched Skills</th>
+                                <th>Missing Skills</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in ranked_candidates %}
+                            <tr class="ranking-row expandable-row {% if candidate.rank == 1 %}rank-gold{% elif candidate.rank == 2 %}rank-silver{% elif candidate.rank == 3 %}rank-bronze{% endif %}" 
+                                data-rank="{{ candidate.rank }}"
+                                data-final-score="{{ candidate.final_score }}"
+                                data-skill-score="{{ candidate.skill_score }}"
+                                data-experience-score="{{ candidate.experience_score }}"
+                                data-candidate-name="{{ candidate.candidate_name }}">
+                                <td>
+                                    <div class="rank-badge-wrapper">
+                                        {% if candidate.rank == 1 %}
+                                        <svg class="medal-icon gold" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        {% elif candidate.rank == 2 %}
+                                        <svg class="medal-icon silver" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        {% elif candidate.rank == 3 %}
+                                        <svg class="medal-icon bronze" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        {% endif %}
+                                        <span class="rank-number">{{ candidate.rank }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="candidate-info">
+                                        <span class="candidate-name">{{ candidate.candidate_name }}</span>
+                                        {% if candidate.email %}
+                                        <span class="candidate-email">{{ candidate.email }}</span>
+                                        {% endif %}
+                                        {% if candidate.is_scanned %}
+                                        <span class="badge-warning" title="Resume appears to be a scanned image with little extractable text">
+                                            ⚠️ Parse Failed
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="score-badge score-{{ 'excellent' if candidate.final_score >= 80 else 'good' if candidate.final_score >= 60 else 'average' if candidate.final_score >= 40 else 'weak' }}">
+                                        {{ "%.1f"|format(candidate.final_score) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="skill-progress-container">
+                                        <div class="skill-progress-bar">
+                                            <div class="skill-progress-fill" style="width: {{ candidate.skill_score }}%"></div>
+                                        </div>
+                                        <span class="skill-progress-text">{{ "%.0f"|format(candidate.skill_score) }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="experience-score">{{ "%.0f"|format(candidate.experience_score) }}</span>
+                                </td>
+                                <td>
+                                    <span class="years-badge">{{ "%.1f"|format(candidate.years_of_experience or 0) }}y</span>
+                                </td>
+                                <td>
+                                    <div class="skill-pills">
+                                        {% for skill in candidate.matched_skills[:4] %}
+                                        <span class="skill-pill skill-matched">✓ {{ skill }}</span>
+                                        {% endfor %}
+                                        {% if candidate.matched_skills|length > 4 %}
+                                        <span class="skill-pill-more" title="{{ candidate.matched_skills[4:]|join(', ') }}">
+                                            +{{ candidate.matched_skills|length - 4 }} more
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="skill-pills">
+                                        {% for skill in candidate.missing_skills[:3] %}
+                                        <span class="skill-pill skill-missing">✗ {{ skill }}</span>
+                                        {% endfor %}
+                                        {% if candidate.missing_skills|length > 3 %}
+                                        <span class="skill-pill-more danger" title="{{ candidate.missing_skills[3:]|join(', ') }}">
+                                            +{{ candidate.missing_skills|length - 3 }} more
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="gap-analysis-row" style="display: none;">
+                                <td colspan="8">
+                                    <div class="gap-analysis-content">
+                                        <div class="gap-header">
+                                            <svg class="gap-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            <h4>Detailed Gap Analysis for {{ candidate.candidate_name }}</h4>
+                                        </div>
+                                        <div class="gap-body">
+                                            <div class="gap-text">
+                                                <p>{{ candidate.gap_analysis }}</p>
+                                            </div>
+                                            <div class="gap-details">
+                                                <div class="gap-section">
+                                                    <h5>
+                                                        <svg class="detail-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                        Matched Skills ({{ candidate.matched_skills|length }})
+                                                    </h5>
+                                                    <div class="skill-tags">
+                                                        {% for skill in candidate.matched_skills %}
+                                                        <span class="skill-tag matched">{{ skill }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                <div class="gap-section">
+                                                    <h5>
+                                                        <svg class="detail-icon danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                        </svg>
+                                                        Missing Skills ({{ candidate.missing_skills|length }})
+                                                    </h5>
+                                                    <div class="skill-tags">
+                                                        {% for skill in candidate.missing_skills %}
+                                                        <span class="skill-tag missing">{{ skill }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Analyze More Resumes
+                </a>
+                <a href="{{ url_for('export', session_id=session_id) }}" class="btn btn-primary" download>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Download CSV Report
+                </a>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-brand">
+                <svg class="footer-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                ResumRank AI
+            </p>
+            <p class="footer-sub">{{ ranked_candidates|length }} candidates ranked using transparent, explainable scoring</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>

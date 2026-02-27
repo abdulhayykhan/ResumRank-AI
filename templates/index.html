@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumRank AI - Transparent Resume Ranking System</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 16V10" stroke-linecap="round"/>
+                        <path d="M11 16V6" stroke-linecap="round"/>
+                        <path d="M15 16V12" stroke-linecap="round"/>
+                        <path d="M19 16V8" stroke-linecap="round"/>
+                    </svg>
+                    ResumRank AI
+                </h1>
+                <h2 class="hero-title">
+                    Rank resumes by skill.<br>
+                    Not by gut feeling.
+                </h2>
+                <p class="hero-subtitle">
+                    AI-powered resume analysis using local NLP — no API key, no limits, no cost.<br>
+                    Upload PDFs, paste a job description, get instant transparent rankings.
+                </p>
+                <div class="hero-features" aria-label="Product highlights">
+                    <span class="hero-feature">📄 Upload up to 10 resumes</span>
+                    <span class="hero-feature">🔑 No API key needed</span>
+                    <span class="hero-feature">📊 Transparent scoring</span>
+                </div>
+                <button type="button" id="how-it-works-toggle" class="how-toggle" aria-expanded="false" aria-controls="how-it-works">
+                    How it works <span class="chevron" aria-hidden="true">▼</span>
+                </button>
+                <div id="how-it-works" class="how-it-works" aria-hidden="true">
+                    <ol class="how-steps">
+                        <li>Upload your PDF resumes (up to 10 at once)</li>
+                        <li>Paste the job description</li>
+                        <li>Click Analyze — get ranked results instantly</li>
+                        <li>Download CSV for your ATS system</li>
+                    </ol>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="card upload-card">
+                <h2 class="card-title">Upload & Analyze Resumes</h2>
+                <p class="card-subtitle">AI-powered ranking with transparent, explainable scoring — no API key required</p>
+
+                <!-- Job Description Section -->
+                <div class="form-section">
+                    <label for="job_description" class="form-label">
+                        <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Job Description *
+                    </label>
+                    <textarea 
+                        id="job_description" 
+                        name="job_description" 
+                        class="textarea"
+                        placeholder="Example: We are seeking a Full Stack Developer with 3+ years of experience. Required skills: Python, React.js, SQL, Docker, REST APIs, Git. Nice to have: AWS, Kubernetes, TypeScript. The role involves building scalable web applications..."
+                        rows="7"
+                        required
+                        aria-describedby="char-counter"></textarea>
+                    <div id="char-counter" class="char-counter">
+                        <span id="char_count">0</span> / 50 characters minimum
+                    </div>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="form-section">
+                    <label class="form-label">
+                        <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        Upload Resume Files (PDF) *
+                    </label>
+                    <p class="form-hint">Maximum 10MB per file. You can upload multiple resumes at once.</p>
+                    
+                    <!-- Drag & Drop Zone -->
+                    <div id="drag_zone" class="drag-zone" role="button" tabindex="0" aria-label="Upload resume files">
+                        <svg class="drag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="drag-text-primary">Drag & drop PDF files here</p>
+                        <p class="drag-text-secondary">or</p>
+                        <button type="button" class="btn-browse">Browse Files</button>
+                        <input 
+                            type="file" 
+                            id="file_input" 
+                            name="resumes" 
+                            multiple 
+                            accept=".pdf,application/pdf"
+                            aria-label="Select PDF files"
+                            style="display: none;">
+                    </div>
+
+                    <!-- Files List -->
+                    <div id="file_list" class="file-list" role="list" aria-live="polite"></div>
+
+                    <!-- Upload Errors -->
+                    <div id="upload_errors" class="error-box" role="alert" style="display: none;"></div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="info-box">
+                    <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div class="info-content">
+                        <strong>⚡ Powered by Local NLP — How Scoring Works:</strong>
+                        <p>Final Score = <span class="highlight">70% Skills Match</span> + <span class="highlight">30% Experience</span></p>
+                        <p class="info-detail">Each candidate receives a transparent, deterministic score based on skill alignment and years of experience. Ties are broken systematically.</p>
+                        <p class="info-detail" style="margin-top: 8px; font-size: 0.875rem; opacity: 0.9;">Skills extracted using spaCy NLP — processes resumes on our server, no third-party AI services.</p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button id="submit_btn" class="btn btn-primary" disabled aria-disabled="true">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Analyze Resumes
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-brand">
+                <svg class="footer-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 16V10" stroke-linecap="round"/>
+                    <path d="M11 16V6" stroke-linecap="round"/>
+                    <path d="M15 16V12" stroke-linecap="round"/>
+                    <path d="M19 16V8" stroke-linecap="round"/>
+                </svg>
+                ResumRank AI
+            </p>
+            <p class="footer-sub">Built with ♥ by Abdul Hayy Khan for transparent, bias-free hiring</p>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading_overlay" class="loading-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="loading-text">
+        <div class="loading-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+            </div>
+            <h3 class="loading-text" id="loading_text">Uploading resumes...</h3>
+            <p class="loading-detail" id="loading_detail">Please wait while we process your files</p>
+            <div class="progress-bar-container">
+                <div class="progress-bar">
+                    <div id="progress_fill" class="progress-fill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <p class="progress-percent" id="progress_percent">0%</p>
+            </div>
+            <p class="progress-step" id="progress_step"></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
