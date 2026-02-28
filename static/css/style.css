@@ -1189,7 +1189,15 @@ a:hover {
 /* Gap Analysis Enhanced */
 .gap-analysis-row {
     background-color: rgba(99, 102, 241, 0.05);
-    animation: slideDown 0.3s ease;
+    display: none;
+}
+
+.gap-analysis-row.expanded {
+    display: table-row;
+}
+
+.gap-analysis-row.expanded .gap-body {
+    max-height: 2000px; /* Set to large value to accommodate content */
 }
 
 @keyframes slideDown {
@@ -1228,6 +1236,9 @@ a:hover {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 2rem;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
 }
 
 .gap-text p {
