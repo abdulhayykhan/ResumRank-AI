@@ -40,6 +40,8 @@ wheels/
 uploads/
 uploads/*.pdf
 uploads/*.PDF
+video/
+video/*.mp4
 results/
 sessions/
 test_data/

@@ -299,20 +299,15 @@ document.addEventListener('DOMContentLoaded', function() {
         row.addEventListener('click', function() {
             const nextRow = this.nextElementSibling;
             if (nextRow && nextRow.classList.contains('gap-analysis-row')) {
-                const gapBody = nextRow.querySelector('.gap-body');
-                if (!gapBody) return;
-
                 // Toggle expanded state
                 const isExpanded = nextRow.classList.contains('expanded');
                 
                 if (isExpanded) {
-                    // Collapse
-                    gapBody.style.maxHeight = '0';
+                    nextRow.style.display = 'none';
                     nextRow.classList.remove('expanded');
                     this.classList.remove('expanded');
                 } else {
-                    // Expand - set maxHeight to scrollHeight for smooth animation
-                    gapBody.style.maxHeight = gapBody.scrollHeight + 'px';
+                    nextRow.style.display = 'table-row';
                     nextRow.classList.add('expanded');
                     this.classList.add('expanded');
                 }
