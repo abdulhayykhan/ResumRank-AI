@@ -10,6 +10,12 @@ The project demonstrates practical NLP and web engineering applied to a real hir
 
 ---
 
+## System Architecture
+
+![System Architecture & Logic Diagram](static/System Architecture & Logic Diagram.png)
+
+---
+
 ## Features
 
 - **PDF Parsing**: Multi-page text and table extraction using pdfplumber; detects and warns on scanned/image-only PDFs (< 100 characters extracted).
