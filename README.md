@@ -12,7 +12,7 @@ The project demonstrates practical NLP and web engineering applied to a real hir
 
 ## System Architecture
 
-![System Architecture & Logic Diagram]([static/System Architecture & Logic Diagram.png](https://github.com/abdulhayykhan/ResumRank-AI/blob/main/static/System%20Architecture%20%26%20Logic%20Diagram.png))
+![System Architecture & Logic Diagram](static/System%20Architecture%20%26%20Logic%20Diagram.png)
 
 ---
 
