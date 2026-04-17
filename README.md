@@ -1,12 +1,18 @@
 # ResumRank AI (Transparent Skill-Based Resume Ranking System)
 
-A role-aware resume ranking web app built with Flask, spaCy NLP, and Vanilla JS. ResumRank AI was developed as part of the **CIS Community NEDUET Ramadan Hackathon 2026**. It showcases local NLP processing, deterministic scoring algorithms, multi-stage pipeline design, and transparent result generation in a full-stack context.
+A role-aware resume ranking web app built with Flask, spaCy NLP, and Vanilla JS. ResumRank AI was developed as part of the **Ramadan Hackathon 2026** by **CIS Community NEDUET**. It showcases local NLP processing, deterministic scoring algorithms, multi-stage pipeline design, and transparent result generation in a full-stack context.
 
 ---
 
 ## Overview
 
 The project demonstrates practical NLP and web engineering applied to a real hiring problem: parsing PDF resumes, extracting skills and experience using local language models, scoring candidates against a job description, and ranking them with full explainability. Features emphasize how backend processing maps to real-world HR entities (resumes, job requirements, skill gaps, experience levels) with clear pipeline stages and no reliance on external AI APIs.
+
+---
+
+## System Architecture
+
+![System Architecture & Logic Diagram](static/System%20Architecture%20%26%20Logic%20Diagram.png)
 
 ---
 
