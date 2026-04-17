@@ -19,9 +19,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-production")
 DEBUG = APP_ENV == "development"
 
 
-def is_vercel() -> bool:
-    """Check whether the app is running on Vercel serverless runtime."""
-    return bool(os.getenv("VERCEL"))
+def is_heroku() -> bool:
+    """Check whether the app is running on Heroku runtime."""
+    return bool(os.getenv("DYNO"))
 
 
 def _get_storage_root() -> str:
@@ -30,7 +30,7 @@ def _get_storage_root() -> str:
     if explicit_root:
         return explicit_root
 
-    # On serverless Linux runtimes (including Vercel), /tmp is writable.
+    # On Linux runtimes (Heroku, Docker, serverless), /tmp is writable.
     if os.path.isdir("/tmp"):
         return "/tmp/resumrank"
 
@@ -48,7 +48,7 @@ EXPERIENCE_WEIGHT = 0.3     # 30% of final score from experience level
 
 # =========== File Handling ===========
 MAX_UPLOAD_SIZE_MB = 10
-# Vercel serverless file system is read-only except /tmp.
+# On Heroku, ephemeral filesystem resets on dyno restart; use /tmp for runtime storage.
 _STORAGE_ROOT = _get_storage_root()
 UPLOAD_FOLDER = os.path.join(_STORAGE_ROOT, "uploads")
 RESULTS_FOLDER = os.path.join(_STORAGE_ROOT, "results")
