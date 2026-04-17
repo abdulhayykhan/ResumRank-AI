@@ -23,6 +23,20 @@ def is_vercel() -> bool:
     """Check whether the app is running on Vercel serverless runtime."""
     return bool(os.getenv("VERCEL"))
 
+
+def _get_storage_root() -> str:
+    """Return writable runtime storage root for current environment."""
+    explicit_root = os.getenv("STORAGE_ROOT")
+    if explicit_root:
+        return explicit_root
+
+    # On serverless Linux runtimes (including Vercel), /tmp is writable.
+    if os.path.isdir("/tmp"):
+        return "/tmp/resumrank"
+
+    # Local development fallback.
+    return "."
+
 # =========== NLP Configuration ===========
 SPACY_MODEL = "en_core_web_sm"      # spaCy language model
 NLP_MODE = "local"                   # "local" = spaCy, future: "api" = Gemini
@@ -35,7 +49,7 @@ EXPERIENCE_WEIGHT = 0.3     # 30% of final score from experience level
 # =========== File Handling ===========
 MAX_UPLOAD_SIZE_MB = 10
 # Vercel serverless file system is read-only except /tmp.
-_STORAGE_ROOT = os.getenv("STORAGE_ROOT", "/tmp/resumrank" if is_vercel() else ".")
+_STORAGE_ROOT = _get_storage_root()
 UPLOAD_FOLDER = os.path.join(_STORAGE_ROOT, "uploads")
 RESULTS_FOLDER = os.path.join(_STORAGE_ROOT, "results")
 SESSIONS_FOLDER = os.path.join(_STORAGE_ROOT, "sessions")

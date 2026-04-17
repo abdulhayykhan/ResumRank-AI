@@ -1,8 +1,0 @@
-uploads/
-results/
-test_data/
-__pycache__/
-*.pyc
-.env
-*.pdf
-modules/__pycache__/

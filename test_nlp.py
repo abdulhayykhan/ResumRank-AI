@@ -4,7 +4,7 @@ NLP Pipeline Test Script
 ========================
 
 Standalone test script to verify the entire no-API-key pipeline works
-correctly before deploying to Railway.
+correctly before deployment.
 
 Run with: python test_nlp.py
 Should complete in under 5 seconds.
@@ -32,7 +32,7 @@ def print_failure(message: str):
     print(f"❌ {message}")
 
 
-def test_spacy_installation():
+def test_spacy_installation(_as_assert: bool = True):
     """Test 1: Check spaCy is installed and model is available."""
     print_test_header("spaCy Installation & Model Availability")
     
@@ -44,19 +44,24 @@ def test_spacy_installation():
             nlp = spacy.load("en_core_web_sm")
             print_success("spaCy model 'en_core_web_sm' is loaded")
             print(f"   Model version: {nlp.meta.get('version', 'unknown')}")
-            return True
+            success = True
         except OSError:
             print_failure("spaCy model 'en_core_web_sm' not found")
             print("   Fix: Run 'python -m spacy download en_core_web_sm'")
-            return False
+            success = False
             
     except ImportError:
         print_failure("spaCy library not installed")
         print("   Fix: Run 'pip install spacy>=3.7.0'")
-        return False
+        success = False
+
+    if _as_assert:
+        assert success
+        return
+    return success
 
 
-def test_skills_database():
+def test_skills_database(_as_assert: bool = True):
     """Test 2: Test skills_db.py module."""
     print_test_header("Skills Database Module")
     
@@ -68,7 +73,11 @@ def test_skills_database():
         print_success(f"ALL_SKILLS loaded: {skill_count} skills in database")
         if skill_count < 100:
             print_failure(f"Expected at least 100 skills, got {skill_count}")
-            return False
+            success = False
+            if _as_assert:
+                assert success
+                return
+            return success
         
         # Test 2: normalize_skill function
         test_cases = [
@@ -96,17 +105,29 @@ def test_skills_database():
                 print_failure(f"'{skill}' NOT found in ALL_SKILLS")
                 all_passed = False
         
-        return all_passed
+        success = all_passed
+        if _as_assert:
+            assert success
+            return
+        return success
         
     except ImportError as e:
         print_failure(f"Could not import skills_db: {e}")
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
     except Exception as e:
         print_failure(f"Unexpected error: {e}")
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
 
 
-def test_parse_job_skills():
+def test_parse_job_skills(_as_assert: bool = True):
     """Test 3: Test parse_job_skills() function."""
     print_test_header("Job Description Skill Extraction")
     
@@ -140,17 +161,29 @@ def test_parse_job_skills():
                 print_failure(f"Missing expected skill: '{skill}'")
                 all_found = False
         
-        return all_found
+        success = all_found
+        if _as_assert:
+            assert success
+            return
+        return success
         
     except ImportError as e:
         print_failure(f"Could not import skill_extractor: {e}")
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
     except Exception as e:
         print_failure(f"Unexpected error: {e}")
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
 
 
-def test_extract_skills_and_experience():
+def test_extract_skills_and_experience(_as_assert: bool = True):
     """Test 4: Test extract_skills_and_experience() function."""
     print_test_header("Resume Extraction Pipeline")
     
@@ -239,19 +272,31 @@ def test_extract_skills_and_experience():
             print_failure("extraction_success flag is False")
             all_passed = False
         
-        return all_passed
+        success = all_passed
+        if _as_assert:
+            assert success
+            return
+        return success
         
     except ImportError as e:
         print_failure(f"Could not import skill_extractor: {e}")
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
     except Exception as e:
         print_failure(f"Unexpected error: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
 
 
-def test_gap_analysis():
+def test_gap_analysis(_as_assert: bool = True):
     """Test 5: Test generate_gap_analysis() function."""
     print_test_header("Gap Analysis Generation")
     
@@ -303,16 +348,28 @@ def test_gap_analysis():
                 print_failure(f"Candidate name '{name}' not mentioned")
                 all_passed = False
         
-        return all_passed
+        success = all_passed
+        if _as_assert:
+            assert success
+            return
+        return success
         
     except ImportError as e:
         print_failure(f"Could not import scorer: {e}")
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
     except Exception as e:
         print_failure(f"Unexpected error: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        success = False
+        if _as_assert:
+            assert success
+            return
+        return success
 
 
 def main():
@@ -327,11 +384,11 @@ def main():
     
     # Run all tests
     results = {
-        "spaCy Installation": test_spacy_installation(),
-        "Skills Database": test_skills_database(),
-        "Job Skill Parsing": test_parse_job_skills(),
-        "Resume Extraction": test_extract_skills_and_experience(),
-        "Gap Analysis": test_gap_analysis(),
+        "spaCy Installation": test_spacy_installation(False),
+        "Skills Database": test_skills_database(False),
+        "Job Skill Parsing": test_parse_job_skills(False),
+        "Resume Extraction": test_extract_skills_and_experience(False),
+        "Gap Analysis": test_gap_analysis(False),
     }
     
     elapsed_time = time.time() - start_time

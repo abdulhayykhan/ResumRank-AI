@@ -54,11 +54,10 @@ ResumRank/
 ├── config.py                # Constants, scoring weights, environment settings
 ├── .env.example             # Environment variable template
 ├── .gitignore               # Ignore rules for temp/test artifacts
-├── .railwayignore           # Railway ignore rules
 ├── requirements.txt         # Python dependencies
 ├── runtime.txt              # Python version pin (3.11)
-├── Procfile                 # Railway deployment command
-├── railway.json             # Railway platform config
+├── vercel.json              # Vercel serverless routing config
+├── api/index.py             # Vercel Python entrypoint
 ├── test_nlp.py              # Pipeline verification test suite (5 tests)
 │
 ├── modules/
@@ -68,7 +67,7 @@ ResumRank/
 │   ├── scorer.py            # Weighted scoring engine + gap analysis templates
 │   ├── ranker.py            # Deterministic ranking and tie-breaking logic
 │   ├── pdf_parser.py        # PDF text extraction with edge case handling
-│   ├── session_manager.py   # File-based session persistence for Railway deployments
+│   ├── session_manager.py   # File-based session persistence
 │   └── exporter.py          # CSV generation and formatting
 │
 ├── templates/
@@ -111,8 +110,10 @@ ResumRank/
 
 Environment variables (optional locally, required in production):
 - `SECRET_KEY` — Flask session secret; generate with `python -c "import secrets; print(secrets.token_hex(32))"`
-- `APP_ENV` — Set to `production` on Railway; defaults to `development`
-- `PORT` — Set automatically by Railway; defaults to `5000`
+- `APP_ENV` — Set to `production` in Vercel; defaults to `development`
+- `PORT` — Optional for local runs; defaults to `5000`
+
+If `APP_ENV=production` and `SECRET_KEY` is missing or left at the default dev value, the app now fails fast at startup.
 
 ---
 
@@ -222,17 +223,6 @@ Steps:
 Notes:
 - The app uses local spaCy NLP and installs `en_core_web_sm` at build time via `requirements.txt`.
 - In serverless environments, writable files are stored under `/tmp/resumrank`.
-
-### Railway (Free Tier)
-
-1. Push to GitHub.
-2. Connect the repo to [Railway](https://railway.app).
-3. Add environment variables in the Railway dashboard:
-   - `APP_ENV` = `production`
-   - `SECRET_KEY` = *(generate a random 32-byte hex string)*
-4. Railway detects the `Procfile` automatically. The spaCy model downloads on first start (~30 seconds cold start).
-
-**Cost:** Free on Railway Starter (500 hours/month included).
 
 ### Local Development
 

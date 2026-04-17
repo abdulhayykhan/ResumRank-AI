@@ -52,6 +52,17 @@ app.secret_key = config.SECRET_KEY
 app.config['MAX_CONTENT_LENGTH'] = config.MAX_UPLOAD_SIZE_MB * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
 
+if config.is_production() and (
+    not config.SECRET_KEY or config.SECRET_KEY == "dev-secret-change-in-production"
+):
+    raise RuntimeError(
+        "Invalid production configuration: set a strong SECRET_KEY environment variable."
+    )
+
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = config.is_production()
+
 # Create required directories
 os.makedirs(config.UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(config.RESULTS_FOLDER, exist_ok=True)
@@ -70,10 +81,9 @@ from modules import verify_nlp_setup
 if not verify_nlp_setup():
     logger.error(
         "STARTUP FAILED: spaCy model not found.\n"
-        "Fix: Run 'python -m spacy download en_core_web_sm'\n"
-        "Railway: The Procfile handles this automatically."
+        "Fix: Run 'python -m spacy download en_core_web_sm'"
     )
-    # Don't exit — let Railway's Procfile handle the download
+    # Don't exit here; the first request may be slow while NLP initializes.
     # The first request will trigger spaCy to load and may be slow
 
 
@@ -844,7 +854,7 @@ def run_full_pipeline(file_paths, job_description, session_id):
 
 # ========== Application Startup ==========
 
-# Development only — Railway uses gunicorn (see Procfile)
+# Development only — production should run behind a WSGI/serverless runtime
 # Do NOT set debug=True in production
 
 if __name__ == "__main__":
