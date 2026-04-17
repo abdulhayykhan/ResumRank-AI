@@ -15,6 +15,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Any
 from pathlib import Path
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 class SessionManager:
     """Manages session data with file-based persistence."""
     
-    def __init__(self, storage_dir: str = "sessions"):
+    def __init__(self, storage_dir: str = config.SESSIONS_FOLDER):
         """
         Initialize session manager.
         

@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "api/index.py": {
+      "runtime": "@vercel/python",
+      "maxDuration": 60,
+      "includeFiles": "{templates/**,static/**,modules/**}"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ]
+}

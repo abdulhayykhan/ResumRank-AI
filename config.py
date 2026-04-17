@@ -18,6 +18,11 @@ APP_ENV = os.getenv("APP_ENV", "development")  # "development" or "production"
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-production")
 DEBUG = APP_ENV == "development"
 
+
+def is_vercel() -> bool:
+    """Check whether the app is running on Vercel serverless runtime."""
+    return bool(os.getenv("VERCEL"))
+
 # =========== NLP Configuration ===========
 SPACY_MODEL = "en_core_web_sm"      # spaCy language model
 NLP_MODE = "local"                   # "local" = spaCy, future: "api" = Gemini
@@ -29,8 +34,11 @@ EXPERIENCE_WEIGHT = 0.3     # 30% of final score from experience level
 
 # =========== File Handling ===========
 MAX_UPLOAD_SIZE_MB = 10
-UPLOAD_FOLDER = "uploads/"
-RESULTS_FOLDER = "results/"
+# Vercel serverless file system is read-only except /tmp.
+_STORAGE_ROOT = os.getenv("STORAGE_ROOT", "/tmp/resumrank" if is_vercel() else ".")
+UPLOAD_FOLDER = os.path.join(_STORAGE_ROOT, "uploads")
+RESULTS_FOLDER = os.path.join(_STORAGE_ROOT, "results")
+SESSIONS_FOLDER = os.path.join(_STORAGE_ROOT, "sessions")
 ALLOWED_EXTENSIONS = {"pdf"}
 
 # =========== Processing ===========

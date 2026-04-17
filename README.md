@@ -196,6 +196,27 @@ Results: 5/5 tests passed
 
 ## Deployment
 
+### Vercel
+
+This repository now includes Vercel-ready configuration:
+- `vercel.json` for Python serverless routing (`api/index.py`)
+- `api/index.py` WSGI entrypoint
+- Vercel-safe writable paths via `/tmp/resumrank` for uploads/sessions/results
+
+Steps:
+
+1. Push this repo to GitHub.
+2. Import the project in [Vercel](https://vercel.com/new).
+3. Framework preset: **Other**.
+4. Set environment variables in Vercel project settings:
+   - `APP_ENV=production`
+   - `SECRET_KEY=<your-random-32-byte-hex>`
+5. Deploy.
+
+Notes:
+- The app uses local spaCy NLP and installs `en_core_web_sm` at build time via `requirements.txt`.
+- In serverless environments, writable files are stored under `/tmp/resumrank`.
+
 ### Railway (Free Tier)
 
 1. Push to GitHub.
