@@ -1,6 +1,6 @@
 """
 Session Manager for Resume Ranking System
-==========================================
+=========================================
 
 File-based session storage to persist data across server restarts.
 Uses JSON files in a sessions folder to store results and progress.

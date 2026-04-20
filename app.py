@@ -1,6 +1,6 @@
 """
 Resume Ranking System - Main Flask Application
-===============================================
+==============================================
 
 Flask application that ties together all modules for resume analysis and ranking.
 
