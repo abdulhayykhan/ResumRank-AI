@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 NLP Pipeline Test Script
-========================
+=======================
 
 Standalone test script to verify the entire no-API-key pipeline works
 correctly before deployment.
