@@ -7,5 +7,5 @@ sessions/
 __pycache__/
 *.pyc
 .env
-*.pdf
 modules/__pycache__/
+.scannerwork/
